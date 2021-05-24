@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Current Version: 1.0.4
+# Current Version: 1.0.5
 
 ## How to get and use?
 # git clone "https://github.com/hezhijie0327/Toolkit.git"
@@ -27,7 +27,7 @@ function CheckConfigurationValidity() {
     if [ "${GIT_MODE}" == "" ]; then
         echo "An error occurred during processing. Missing (GIT_MODE) value, please check it and try again."
         exit 1
-    elif [ "${GIT_MODE}" != "clone" ] || [ "${GIT_MODE}" != "push" ]; then
+    elif [ "${GIT_MODE}" != "clone" ] && [ "${GIT_MODE}" != "push" ]; then
         echo "An error occurred during processing. Invalid (GIT_MODE) value, please check it and try again."
         exit 1
     fi
