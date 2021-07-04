@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Current Version: 1.0.4
+# Current Version: 1.0.5
 
 ## How to get and use?
 # git clone "https://github.com/hezhijie0327/Toolkit.git"
@@ -156,7 +156,7 @@ if [ "${GPG_MODE}" == "decrypt" ]; then
         echo "Oops! \"${FILE}\" has not decrypted successfully."
     fi
 elif [ "${GPG_MODE}" == "encrypt" ]; then
-    gpg --encrypt --recipient "${RECIPIENT}" --yes "${FILE}"
+    gpg --encrypt --recipient "${RECIPIENT}" --trust-model "always" --yes "${FILE}"
     if [ "$?" -eq "0" ]; then
         echo "Congratulations! \"${FILE}\" has encrypted successfully."
     else
