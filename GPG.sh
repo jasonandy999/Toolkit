@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Current Version: 1.0.2
+# Current Version: 1.0.3
 
 ## How to get and use?
 # git clone "https://github.com/hezhijie0327/Toolkit.git"
 # bash ./Toolkit/GPG.sh -m "decrypt" -p "<PASSWORD>" -f "<FILE>"
-# bash ./Toolkit/GPG.sh -m "encrypt" -R "<RECIPIENT>" -f "<FILE>"
+# bash ./Toolkit/GPG.sh -m "encrypt" -r "<RECIPIENT>" -f "<FILE>"
 # bash ./Toolkit/GPG.sh -m "export" -t "private" -p "<PASSWORD>" -k "<KEY>"
 # bash ./Toolkit/GPG.sh -m "import" -t "private" -p "<PASSWORD>" -k "<KEY>"
 # bash ./Toolkit/GPG.sh -m "sign" -e "asc" -p "<PASSWORD>" -f "<FILE>"
@@ -63,10 +63,6 @@ function CheckConfigurationValidity() {
         if [ "${KEY}" == "" ]; then
             echo "An error occurred during processing. Missing (KEY) value, please check it and try again."
             exit 1
-        elif [ ! -f "${KEY}" ]; then
-            echo "An error occurred during processing. Invalid (KEY) value, please check it and try again."
-            exit 1
-        fi
         fi
         if [ "${PASSWORD}" == "" ] && [ "${TYPE}" == "private" ]; then
             echo "An error occurred during processing. Missing (PASSWORD) value, please check it and try again."
@@ -90,7 +86,6 @@ function CheckConfigurationValidity() {
         elif [ ! -f "${KEY}" ]; then
             echo "An error occurred during processing. Invalid (KEY) value, please check it and try again."
             exit 1
-        fi
         fi
         if [ "${PASSWORD}" == "" ] && [ "${TYPE}" == "private" ]; then
             echo "An error occurred during processing. Missing (PASSWORD) value, please check it and try again."
@@ -154,7 +149,7 @@ CheckConfigurationValidity
 # Call CheckRequirement
 CheckRequirement
 if [ "${GPG_MODE}" == "decrypt" ]; then
-    gpg --decrypt --passphrase "${PASSWORD}" --pinentry-mode "loopback" "${FILE}" > "${FILE}"
+    gpg --decrypt --output "${FILE}" --passphrase "${PASSWORD}" --pinentry-mode "loopback" --yes "${FILE}"
 elif [ "${GPG_MODE}" == "encrypt" ]; then
     gpg --encrypt --recipient "${RECIPIENT}" --yes "${FILE}"
 elif [ "${GPG_MODE}" == "export" ]; then
