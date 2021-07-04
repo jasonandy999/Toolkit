@@ -1,21 +1,25 @@
 #!/bin/bash
 
-# Current Version: 1.0.1
+# Current Version: 1.0.2
 
 ## How to get and use?
 # git clone "https://github.com/hezhijie0327/Toolkit.git"
+# bash ./Toolkit/GPG.sh -m "decrypt" -p "<PASSWORD>" -f "<FILE>"
+# bash ./Toolkit/GPG.sh -m "encrypt" -R "<RECIPIENT>" -f "<FILE>"
+# bash ./Toolkit/GPG.sh -m "export" -t "private" -p "<PASSWORD>" -k "<KEY>"
 # bash ./Toolkit/GPG.sh -m "import" -t "private" -p "<PASSWORD>" -k "<KEY>"
 # bash ./Toolkit/GPG.sh -m "sign" -e "asc" -p "<PASSWORD>" -f "<FILE>"
 # bash ./Toolkit/GPG.sh -m "verify" -f "<FILE>" -s "<SIGNATURE>"
 
 ## Parameter
-while getopts e:f:k:m:p:s:t: GetParameter; do
+while getopts e:f:k:m:p:r:s:t: GetParameter; do
     case ${GetParameter} in
         e) ENCODED="${OPTARG}";;
         f) FILE="${OPTARG}";;
         k) KEY="${OPTARG}";;
         m) GPG_MODE="${OPTARG}";;
         p) PASSWORD="${OPTARG}";;
+        r) RECIPIENT="${OPTARG}";;
         s) SIGNATURE="${OPTARG}";;
         t) TYPE="${OPTARG}";;
     esac
@@ -27,11 +31,59 @@ function CheckConfigurationValidity() {
     if [ "${GPG_MODE}" == "" ]; then
         echo "An error occurred during processing. Missing (GPG_MODE) value, please check it and try again."
         exit 1
-    elif [ "${GPG_MODE}" != "import" ] && [ "${GPG_MODE}" != "sign" ] && [ "${GPG_MODE}" != "verify" ]; then
+    elif [ "${GPG_MODE}" != "decrypt" ] && [ "${GPG_MODE}" != "encrypt" ] && [ "${GPG_MODE}" != "export" ] && [ "${GPG_MODE}" != "import" ] && [ "${GPG_MODE}" != "sign" ] && [ "${GPG_MODE}" != "verify" ]; then
         echo "An error occurred during processing. Invalid (GPG_MODE) value, please check it and try again."
         exit 1
     fi
-    if [ "${GPG_MODE}" == "import" ]; then
+    if [ "${GPG_MODE}" == "decrypt" ]; then
+        if [ "${FILE}" == "" ]; then
+            echo "An error occurred during processing. Missing (FILE) value, please check it and try again."
+            exit 1
+        elif [ ! -f "${FILE}" ]; then
+            echo "An error occurred during processing. Invalid (FILE) value, please check it and try again."
+            exit 1
+        fi
+        if [ "${PASSWORD}" == "" ] && [ "${TYPE}" == "private" ]; then
+            echo "An error occurred during processing. Missing (PASSWORD) value, please check it and try again."
+            exit 1
+        fi
+    elif [ "${GPG_MODE}" == "encrypt" ]; then
+        if [ "${FILE}" == "" ]; then
+            echo "An error occurred during processing. Missing (FILE) value, please check it and try again."
+            exit 1
+        elif [ ! -f "${FILE}" ]; then
+            echo "An error occurred during processing. Invalid (FILE) value, please check it and try again."
+            exit 1
+        fi
+        if [ "${RECIPIENT}" == "" ]; then
+            echo "An error occurred during processing. Missing (RECIPIENT) value, please check it and try again."
+            exit 1
+        fi
+    elif [ "${GPG_MODE}" == "export" ]; then
+        if [ "${KEY}" == "" ]; then
+            echo "An error occurred during processing. Missing (KEY) value, please check it and try again."
+            exit 1
+        elif [ ! -f "${KEY}" ]; then
+            echo "An error occurred during processing. Invalid (KEY) value, please check it and try again."
+            exit 1
+        fi
+        fi
+        if [ "${PASSWORD}" == "" ] && [ "${TYPE}" == "private" ]; then
+            echo "An error occurred during processing. Missing (PASSWORD) value, please check it and try again."
+            exit 1
+        fi
+        if [ "${RECIPIENT}" == "" ] && [ "${TYPE}" == "public" ]; then
+            echo "An error occurred during processing. Missing (RECIPIENT) value, please check it and try again."
+            exit 1
+        fi
+        if [ "${TYPE}" == "" ]; then
+            echo "An error occurred during processing. Missing (TYPE) value, please check it and try again."
+            exit 1
+        elif [ "${TYPE}" != "private" ] && [ "${TYPE}" != "public" ]; then
+            echo "An error occurred during processing. Invalid (TYPE) value, please check it and try again."
+            exit 1
+        fi
+    elif [ "${GPG_MODE}" == "import" ]; then
         if [ "${KEY}" == "" ]; then
             echo "An error occurred during processing. Missing (KEY) value, please check it and try again."
             exit 1
@@ -101,7 +153,17 @@ function CheckRequirement() {
 CheckConfigurationValidity
 # Call CheckRequirement
 CheckRequirement
-if [ "${GPG_MODE}" == "import" ]; then
+if [ "${GPG_MODE}" == "decrypt" ]; then
+    gpg --decrypt --passphrase "${PASSWORD}" --pinentry-mode "loopback" "${FILE}" > "${FILE}"
+elif [ "${GPG_MODE}" == "encrypt" ]; then
+    gpg --encrypt --recipient "${RECIPIENT}" --yes "${FILE}"
+elif [ "${GPG_MODE}" == "export" ]; then
+    if [ "${TYPE}" == "private" ]; then
+        gpg --armor --export-secret-keys --passphrase "${PASSWORD}" --pinentry-mode "loopback" > "${KEY}"
+    elif [ "${TYPE}" == "public" ]; then
+        gpg --armor --export "${RECIPIENT}" > "${KEY}"
+    fi
+elif [ "${GPG_MODE}" == "import" ]; then
     if [ "${TYPE}" == "private" ]; then
         gpg --batch --import --passphrase "${PASSWORD}" "${KEY}"
     elif [ "${TYPE}" == "public" ]; then
