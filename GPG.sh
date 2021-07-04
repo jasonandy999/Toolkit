@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Current Version: 1.0.3
+# Current Version: 1.0.4
 
 ## How to get and use?
 # git clone "https://github.com/hezhijie0327/Toolkit.git"
@@ -150,19 +150,39 @@ CheckConfigurationValidity
 CheckRequirement
 if [ "${GPG_MODE}" == "decrypt" ]; then
     gpg --decrypt --output "${FILE}" --passphrase "${PASSWORD}" --pinentry-mode "loopback" --yes "${FILE}"
+    if [ "$?" -eq "0" ]; then
+        echo "Congratulations! \"${FILE}\" has decrypted successfully."
+    else
+        echo "Oops! \"${FILE}\" has not decrypted successfully."
+    fi
 elif [ "${GPG_MODE}" == "encrypt" ]; then
     gpg --encrypt --recipient "${RECIPIENT}" --yes "${FILE}"
+    if [ "$?" -eq "0" ]; then
+        echo "Congratulations! \"${FILE}\" has encrypted successfully."
+    else
+        echo "Oops! \"${FILE}\" has not encrypted successfully."
+    fi
 elif [ "${GPG_MODE}" == "export" ]; then
     if [ "${TYPE}" == "private" ]; then
         gpg --armor --export-secret-keys --passphrase "${PASSWORD}" --pinentry-mode "loopback" > "${KEY}"
     elif [ "${TYPE}" == "public" ]; then
         gpg --armor --export "${RECIPIENT}" > "${KEY}"
     fi
+    if [ "$?" -eq "0" ]; then
+        echo "Congratulations! ${TYPE} key has exported successfully."
+    else
+        echo "Oops! ${TYPE} key has not exported successfully."
+    fi
 elif [ "${GPG_MODE}" == "import" ]; then
     if [ "${TYPE}" == "private" ]; then
         gpg --batch --import --passphrase "${PASSWORD}" "${KEY}"
     elif [ "${TYPE}" == "public" ]; then
         gpg --batch --import "${KEY}"
+    fi
+    if [ "$?" -eq "0" ]; then
+        echo "Congratulations! ${TYPE} key has imported successfully."
+    else
+        echo "Oops! ${TYPE} key has not imported successfully."
     fi
 elif [ "${GPG_MODE}" == "sign" ]; then
     if [ "${ENCODED}" == "asc" ]; then
@@ -172,6 +192,16 @@ elif [ "${GPG_MODE}" == "sign" ]; then
     elif [ "${ENCODED}" == "sig" ]; then
         gpg --detach-sign --passphrase "${PASSWORD}" --pinentry-mode "loopback" "${FILE}"
     fi
+    if [ "$?" -eq "0" ]; then
+        echo "Congratulations! \"${FILE}\" has signed successfully."
+    else
+        echo "Oops! \"${FILE}\" has not signed successfully."
+    fi
 elif [ "${GPG_MODE}" == "verify" ]; then
     gpg --verify "${SIGNATURE}" "${FILE}"
+    if [ "$?" -eq "0" ]; then
+        echo "Congratulations! \"${FILE}\" has verified successfully."
+    else
+        echo "Oops! \"${FILE}\" has not verified successfully."
+    fi
 fi
