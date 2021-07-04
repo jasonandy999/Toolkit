@@ -1,20 +1,23 @@
 #!/bin/bash
 
-# Current Version: 1.0.0
+# Current Version: 1.0.1
 
 ## How to get and use?
 # git clone "https://github.com/hezhijie0327/Toolkit.git"
+# bash ./Toolkit/GPG.sh -m "import" -t "private" -p "<PASSWORD>" -k "<KEY>"
 # bash ./Toolkit/GPG.sh -m "sign" -e "asc" -p "<PASSWORD>" -f "<FILE>"
 # bash ./Toolkit/GPG.sh -m "verify" -f "<FILE>" -s "<SIGNATURE>"
 
 ## Parameter
-while getopts e:f:m:p:s: GetParameter; do
+while getopts e:f:k:m:p:s:t: GetParameter; do
     case ${GetParameter} in
         e) ENCODED="${OPTARG}";;
         f) FILE="${OPTARG}";;
+        k) KEY="${OPTARG}";;
         m) GPG_MODE="${OPTARG}";;
         p) PASSWORD="${OPTARG}";;
         s) SIGNATURE="${OPTARG}";;
+        t) TYPE="${OPTARG}";;
     esac
 done
 
@@ -24,11 +27,31 @@ function CheckConfigurationValidity() {
     if [ "${GPG_MODE}" == "" ]; then
         echo "An error occurred during processing. Missing (GPG_MODE) value, please check it and try again."
         exit 1
-    elif [ "${GPG_MODE}" != "sign" ] && [ "${GPG_MODE}" != "verify" ]; then
+    elif [ "${GPG_MODE}" != "import" ] && [ "${GPG_MODE}" != "sign" ] && [ "${GPG_MODE}" != "verify" ]; then
         echo "An error occurred during processing. Invalid (GPG_MODE) value, please check it and try again."
         exit 1
     fi
-    if [ "${GPG_MODE}" == "sign" ]; then
+    if [ "${GPG_MODE}" == "import" ]; then
+        if [ "${KEY}" == "" ]; then
+            echo "An error occurred during processing. Missing (KEY) value, please check it and try again."
+            exit 1
+        elif [ ! -f "${KEY}" ]; then
+            echo "An error occurred during processing. Invalid (KEY) value, please check it and try again."
+            exit 1
+        fi
+        fi
+        if [ "${PASSWORD}" == "" ] && [ "${TYPE}" == "private" ]; then
+            echo "An error occurred during processing. Missing (PASSWORD) value, please check it and try again."
+            exit 1
+        fi
+        if [ "${TYPE}" == "" ]; then
+            echo "An error occurred during processing. Missing (TYPE) value, please check it and try again."
+            exit 1
+        elif [ "${TYPE}" != "private" ] && [ "${TYPE}" != "public" ]; then
+            echo "An error occurred during processing. Invalid (TYPE) value, please check it and try again."
+            exit 1
+        fi
+    elif [ "${GPG_MODE}" == "sign" ]; then
         if [ "${ENCODED}" == "" ]; then
             echo "An error occurred during processing. Missing (ENCODED) value, please check it and try again."
             exit 1
@@ -78,7 +101,13 @@ function CheckRequirement() {
 CheckConfigurationValidity
 # Call CheckRequirement
 CheckRequirement
-if [ "${GPG_MODE}" == "sign" ]; then
+if [ "${GPG_MODE}" == "import" ]; then
+    if [ "${TYPE}" == "private" ]; then
+        gpg --batch --import --passphrase "${PASSWORD}" "${KEY}"
+    elif [ "${TYPE}" == "public" ]; then
+        gpg --batch --import "${KEY}"
+    fi
+elif [ "${GPG_MODE}" == "sign" ]; then
     if [ "${ENCODED}" == "asc" ]; then
         gpg --armor --detach-sign --passphrase "${PASSWORD}" --pinentry-mode "loopback" "${FILE}"
     elif [ "${ENCODED}" == "gpg" ]; then
